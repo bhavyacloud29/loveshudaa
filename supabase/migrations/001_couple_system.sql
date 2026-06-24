@@ -1,5 +1,5 @@
 -- Enable UUID extension
-extension if not exists "uuid-ossp";
+create extension if not exists "uuid-ossp";
 
 -- Profiles table
 create table if not exists public.profiles (
@@ -72,7 +72,7 @@ alter table public.milestones enable row level security;
 
 -- Profiles: users can read their own + partner profile
 create policy "profiles_select" on public.profiles for select using (
-  auth.uid() = id or auth.uid() = partner_id or
+  auth.uid() = id or
   id in (select partner_id from public.profiles where id = auth.uid())
 );
 create policy "profiles_insert" on public.profiles for insert with check (auth.uid() = id);
