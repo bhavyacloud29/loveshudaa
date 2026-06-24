@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 export default function DashboardPage() {
   return (
     <div className="px-6 py-8 max-w-3xl mx-auto pb-24 md:pb-8">

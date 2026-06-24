@@ -1,25 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 const navItems = [
-  { href: "/app/dashboard", icon: "🏠", label: "Home" },
-  { href: "/app/chat",      icon: "💬", label: "Chat" },
-  { href: "/app/memories",  icon: "📸", label: "Memories" },
-  { href: "/app/timeline",  icon: "📅", label: "Timeline" },
-  { href: "/app/journal",   icon: "📓", label: "Journal" },
-  { href: "/app/milestones",icon: "🎉", label: "Milestones" },
+  { href: "/app/dashboard",  icon: "🏠", label: "Home" },
+  { href: "/app/chat",       icon: "💬", label: "Chat" },
+  { href: "/app/memories",   icon: "📸", label: "Memories" },
+  { href: "/app/timeline",   icon: "📅", label: "Timeline" },
+  { href: "/app/journal",    icon: "📓", label: "Journal" },
+  { href: "/app/milestones", icon: "🎉", label: "Milestones" },
 ];
 
 export default function AppSidebar({ user }: { user: { email?: string } }) {
   const pathname = usePathname();
   const router = useRouter();
-  const supabase = createClient();
 
   async function handleSignOut() {
+    // Lazy import so Supabase client never runs at build time
+    const { createClient } = await import("@/lib/supabase/client");
+    const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/login");
     router.refresh();
@@ -67,7 +67,7 @@ export default function AppSidebar({ user }: { user: { email?: string } }) {
             <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-xs text-primary font-semibold shrink-0">
               {user.email?.[0]?.toUpperCase() ?? "U"}
             </div>
-            <span className="text-xs text-muted-foreground truncate">{user.email}</span>
+            <span className="text-xs text-muted-foreground truncate">{user.email || "you"}</span>
           </div>
           <button
             onClick={handleSignOut}

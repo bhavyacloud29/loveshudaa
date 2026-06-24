@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import AppSidebar from "@/components/shared/AppSidebar";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {

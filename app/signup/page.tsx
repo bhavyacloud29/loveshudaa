@@ -1,6 +1,7 @@
+export const dynamic = "force-dynamic";
+
 "use client";
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 
 export default function SignupPage() {
@@ -10,12 +11,13 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
-  const supabase = createClient();
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
+    const { createClient } = await import("@/lib/supabase/client");
+    const supabase = createClient();
     const { error } = await supabase.auth.signUp({ email, password, options: { data: { display_name: name } } });
     if (error) { setError(error.message); setLoading(false); }
     else { setSuccess(true); setLoading(false); }
