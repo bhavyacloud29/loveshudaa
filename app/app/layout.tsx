@@ -10,13 +10,26 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('display_name, avatar_url')
+    .select('display_name, avatar_url, partner_id')
     .eq('id', user.id)
     .single()
 
+  let partner = null
+  if (profile?.partner_id) {
+    const { data } = await supabase
+      .from('profiles')
+      .select('display_name, avatar_url')
+      .eq('id', profile.partner_id)
+      .single()
+    partner = data
+  }
+
   return (
     <div className="flex h-screen bg-background overflow-hidden">
-      <AppSidebar user={{ email: user.email ?? '', name: profile?.display_name ?? '' }} />
+      <AppSidebar
+        user={{ email: user.email ?? '', name: profile?.display_name ?? '' }}
+        partner={partner}
+      />
       <main className="flex-1 overflow-y-auto">{children}</main>
     </div>
   )

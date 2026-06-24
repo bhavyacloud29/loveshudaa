@@ -12,7 +12,13 @@ const navItems = [
   { href: '/app/milestones', icon: '🎉', label: 'Milestones' },
 ]
 
-export default function AppSidebar({ user }: { user: { email: string; name?: string } }) {
+export default function AppSidebar({
+  user,
+  partner,
+}: {
+  user: { email: string; name?: string }
+  partner?: { name?: string | null } | null
+}) {
   const pathname = usePathname()
   const router = useRouter()
 
@@ -38,7 +44,12 @@ export default function AppSidebar({ user }: { user: { email: string; name?: str
             <circle cx="21" cy="24" r="2.5" fill="currentColor" opacity="0.6"/>
             <circle cx="35" cy="24" r="2.5" fill="currentColor" opacity="0.6"/>
           </svg>
-          <span className="font-semibold text-sm text-foreground tracking-tight">Loveshudaa</span>
+          <div>
+            <span className="font-semibold text-sm text-foreground tracking-tight block">Loveshudaa</span>
+            {partner?.name && (
+              <span className="text-xs text-muted-foreground">with {partner.name} 💕</span>
+            )}
+          </div>
         </div>
 
         <nav className="flex-1 px-3 py-4 flex flex-col gap-0.5">

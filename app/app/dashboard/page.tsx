@@ -9,18 +9,28 @@ export default async function DashboardPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('display_name')
+    .select('display_name, partner_id, couple_id')
     .eq('id', user.id)
     .single()
+
+  let partnerName = null
+  if (profile?.partner_id) {
+    const { data: partner } = await supabase
+      .from('profiles')
+      .select('display_name')
+      .eq('id', profile.partner_id)
+      .single()
+    partnerName = partner?.display_name
+  }
 
   const name = profile?.display_name || user.email?.split('@')[0] || 'you'
 
   const quickLinks = [
-    { href: '/app/chat',       icon: '💬', title: 'Chat',      desc: 'Message your love' },
-    { href: '/app/memories',   icon: '📸', title: 'Memories',  desc: 'Your photo gallery' },
-    { href: '/app/timeline',   icon: '📅', title: 'Timeline',  desc: 'Your story so far' },
-    { href: '/app/journal',    icon: '📓', title: 'Journal',   desc: 'Write your thoughts' },
-    { href: '/app/milestones', icon: '🎉', title: 'Milestones',desc: 'Celebrate moments' },
+    { href: '/app/chat',       icon: '💬', title: 'Chat',       desc: 'Message your love' },
+    { href: '/app/memories',   icon: '📸', title: 'Memories',   desc: 'Your photo gallery' },
+    { href: '/app/timeline',   icon: '📅', title: 'Timeline',   desc: 'Your story so far' },
+    { href: '/app/journal',    icon: '📓', title: 'Journal',    desc: 'Your private diary' },
+    { href: '/app/milestones', icon: '🎉', title: 'Milestones', desc: 'Celebrate moments' },
   ]
 
   return (
@@ -29,7 +39,11 @@ export default async function DashboardPage() {
         <h1 className="text-2xl font-semibold text-foreground">
           Hey, {name} 🌹
         </h1>
-        <p className="text-muted-foreground text-sm mt-1">Welcome to your private universe.</p>
+        {partnerName ? (
+          <p className="text-muted-foreground text-sm mt-1">You and {partnerName} — your private universe 💕</p>
+        ) : (
+          <p className="text-muted-foreground text-sm mt-1">Welcome to your private universe.</p>
+        )}
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -45,6 +59,16 @@ export default async function DashboardPage() {
           </a>
         ))}
       </div>
+
+      {!profile?.partner_id && (
+        <div className="mt-8 p-5 bg-primary/5 border border-primary/20 rounded-2xl">
+          <p className="text-sm font-medium text-foreground mb-1">Connect with your partner 💕</p>
+          <p className="text-xs text-muted-foreground mb-3">Share your invite code to start sharing your space</p>
+          <a href="/app/connect" className="inline-block text-xs bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors">
+            Get invite code →
+          </a>
+        </div>
+      )}
 
       <p className="text-xs text-muted-foreground/40 text-center mt-12">Inspired by Aditi Didi ❤️</p>
     </div>

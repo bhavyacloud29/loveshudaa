@@ -34,6 +34,19 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/app/dashboard', request.url))
   }
 
+  // If logged in but not connected, redirect to connect page (except if already there)
+  if (user && pathname.startsWith('/app') && pathname !== '/app/connect') {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('partner_id')
+      .eq('id', user.id)
+      .single()
+
+    if (profile && !profile.partner_id) {
+      return NextResponse.redirect(new URL('/app/connect', request.url))
+    }
+  }
+
   return supabaseResponse
 }
 
