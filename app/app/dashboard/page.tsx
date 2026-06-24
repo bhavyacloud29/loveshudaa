@@ -7,9 +7,9 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('display_name, partner_id, couple_id')
+    .select('display_name, partner_id, couple_id, invite_code')
     .eq('id', user.id)
     .single()
 
@@ -24,6 +24,7 @@ export default async function DashboardPage() {
   }
 
   const name = profile?.display_name || user.email?.split('@')[0] || 'you'
+  const isConnected = !!profile?.partner_id
 
   const quickLinks = [
     { href: '/app/chat',       icon: '💬', title: 'Chat',       desc: 'Message your love' },
@@ -39,12 +40,31 @@ export default async function DashboardPage() {
         <h1 className="text-2xl font-semibold text-foreground">
           Hey, {name} 🌹
         </h1>
-        {partnerName ? (
+        {isConnected && partnerName ? (
           <p className="text-muted-foreground text-sm mt-1">You and {partnerName} — your private universe 💕</p>
         ) : (
-          <p className="text-muted-foreground text-sm mt-1">Welcome to your private universe.</p>
+          <p className="text-muted-foreground text-sm mt-1">Your private universe is ready.</p>
         )}
       </div>
+
+      {/* Connect banner — always show if not connected */}
+      {!isConnected && (
+        <div className="mb-6 p-5 bg-primary/5 border border-primary/20 rounded-2xl flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium text-foreground mb-0.5">💕 Connect with your partner</p>
+            <p className="text-xs text-muted-foreground">Share your invite code to start your shared space</p>
+            {profile?.invite_code && (
+              <p className="text-xs font-mono font-bold text-primary mt-1 tracking-widest">{profile.invite_code}</p>
+            )}
+          </div>
+          <a
+            href="/app/connect"
+            className="shrink-0 text-xs bg-primary text-primary-foreground px-4 py-2.5 rounded-xl hover:bg-primary/90 transition-colors font-medium"
+          >
+            Connect →
+          </a>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {quickLinks.map((a) => (
@@ -59,16 +79,6 @@ export default async function DashboardPage() {
           </a>
         ))}
       </div>
-
-      {!profile?.partner_id && (
-        <div className="mt-8 p-5 bg-primary/5 border border-primary/20 rounded-2xl">
-          <p className="text-sm font-medium text-foreground mb-1">Connect with your partner 💕</p>
-          <p className="text-xs text-muted-foreground mb-3">Share your invite code to start sharing your space</p>
-          <a href="/app/connect" className="inline-block text-xs bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors">
-            Get invite code →
-          </a>
-        </div>
-      )}
 
       <p className="text-xs text-muted-foreground/40 text-center mt-12">Inspired by Aditi Didi ❤️</p>
     </div>
