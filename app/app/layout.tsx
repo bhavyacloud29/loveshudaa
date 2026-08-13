@@ -28,7 +28,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="flex h-screen bg-background overflow-hidden">
       <AppSidebar
         user={{ email: user.email ?? '', name: profile?.display_name ?? '' }}
-        partner={partner}
+        partner={partner ? { name: partner.display_name } : null}
       />
       <main className="flex-1 overflow-y-auto">{children}</main>
     </div>
