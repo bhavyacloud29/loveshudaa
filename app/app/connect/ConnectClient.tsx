@@ -18,49 +18,22 @@ export default function ConnectClient({ inviteCode, userId }: { inviteCode: stri
     setError('')
     const trimmed = code.trim().toUpperCase()
 
-    // Find partner by invite code
-    const { data: partner, error: findError } = await supabase
-      .from('profiles')
-      .select('id, partner_id')
-      .eq('invite_code', trimmed)
+    // Runs the whole find-partner + create-couple + link-both-profiles
+    // sequence atomically in the database (see migration 003), so two
+    // people can't both connect to the same code at once and a user who
+    // already has a partner can't join a second one.
+    const { data, error: rpcError } = await supabase
+      .rpc('connect_partner', { p_invite_code: trimmed })
       .single()
 
-    if (findError || !partner) {
-      setError('Invalid invite code. Please check and try again.')
+    if (rpcError || !data) {
+      setError(rpcError?.message || 'Something went wrong. Please try again.')
       setLoading(false)
       return
     }
 
-    if (partner.id === userId) {
-      setError("That's your own code! Share it with your partner.")
-      setLoading(false)
-      return
-    }
-
-    if (partner.partner_id) {
-      setError('This user is already connected to someone.')
-      setLoading(false)
-      return
-    }
-
-    // Create couple record
-    const { data: couple, error: coupleError } = await supabase
-      .from('couples')
-      .insert({ user1_id: partner.id, user2_id: userId })
-      .select('id')
-      .single()
-
-    if (coupleError || !couple) {
-      setError('Something went wrong. Please try again.')
-      setLoading(false)
-      return
-    }
-
-    // Link both profiles
-    await supabase.from('profiles').update({ partner_id: partner.id, couple_id: couple.id }).eq('id', userId)
-    await supabase.from('profiles').update({ partner_id: userId, couple_id: couple.id }).eq('id', partner.id)
-
-    router.push('/app/dashboard')
+    const partnerName = data.partner_display_name || 'your partner'
+    router.push(`/app/dashboard?connected=${encodeURIComponent(partnerName)}`)
     router.refresh()
   }
 

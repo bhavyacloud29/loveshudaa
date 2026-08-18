@@ -133,6 +133,11 @@ export interface Database {
       }
     }
     Views: Record<string, never>
-    Functions: Record<string, never>
+    Functions: {
+      connect_partner: {
+        Args: { p_invite_code: string }
+        Returns: { couple_id: string; partner_id: string; partner_display_name: string | null }[]
+      }
+    }
   }
 }

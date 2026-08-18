@@ -2,10 +2,16 @@ export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ connected?: string }>
+}) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  const { connected } = await searchParams
 
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
@@ -46,6 +52,13 @@ export default async function DashboardPage() {
           <p className="text-muted-foreground text-sm mt-1">Your private universe is ready.</p>
         )}
       </div>
+
+      {connected && (
+        <div className="mb-6 p-5 bg-primary/10 border border-primary/30 rounded-2xl">
+          <p className="text-sm font-medium text-foreground">🎉 You&apos;re now connected with {connected}!</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Your shared space is ready.</p>
+        </div>
+      )}
 
       {/* Connect banner — always show if not connected */}
       {!isConnected && (
