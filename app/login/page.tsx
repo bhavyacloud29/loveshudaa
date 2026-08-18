@@ -5,8 +5,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+type Method = "email" | "phone";
+
 export default function LoginPage() {
+  const [method, setMethod] = useState<Method>("email");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,7 +22,9 @@ export default function LoginPage() {
     setError("");
     const { createClient } = await import("@/lib/supabase/client");
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = method === "email"
+      ? await supabase.auth.signInWithPassword({ email, password })
+      : await supabase.auth.signInWithPassword({ phone, password });
     if (error) { setError(error.message); setLoading(false); }
     else { router.push("/app/dashboard"); router.refresh(); }
   }
@@ -38,11 +44,40 @@ export default function LoginPage() {
         <div className="bg-card border border-border rounded-2xl p-8 shadow-sm">
           <h1 className="text-xl font-semibold text-foreground mb-1">Welcome back</h1>
           <p className="text-sm text-muted-foreground mb-6">Enter your space ✨</p>
+
+          <div className="flex bg-muted rounded-xl p-1 mb-6">
+            <button
+              type="button"
+              onClick={() => { setMethod("email"); setError(""); }}
+              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${
+                method === "email" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+              }`}
+            >
+              Email
+            </button>
+            <button
+              type="button"
+              onClick={() => { setMethod("phone"); setError(""); }}
+              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${
+                method === "phone" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+              }`}
+            >
+              Phone
+            </button>
+          </div>
+
           <form onSubmit={handleLogin} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="email" className="text-sm font-medium">Email</label>
-              <input id="email" type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" className="w-full px-4 py-2.5 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring transition"/>
-            </div>
+            {method === "email" ? (
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="email" className="text-sm font-medium">Email</label>
+                <input id="email" type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" className="w-full px-4 py-2.5 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring transition"/>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="phone" className="text-sm font-medium">Phone number</label>
+                <input id="phone" type="tel" required value={phone} onChange={e => setPhone(e.target.value)} placeholder="+919876543210" className="w-full px-4 py-2.5 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring transition"/>
+              </div>
+            )}
             <div className="flex flex-col gap-1.5">
               <label htmlFor="password" className="text-sm font-medium">Password</label>
               <input id="password" type="password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="w-full px-4 py-2.5 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring transition"/>
