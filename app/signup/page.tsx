@@ -20,9 +20,16 @@ export default function SignupPage() {
 
   function readableError(error: unknown): string {
     if (error && typeof error === "object") {
-      const anyError = error as { message?: string; msg?: string; error_description?: string };
+      const anyError = error as { name?: string; message?: string; msg?: string; error_description?: string };
+      // 5xx responses come back from supabase-js as AuthRetryableFetchError,
+      // whose .message is JSON.stringify(rawResponse) - always "{}" since
+      // Response objects have no own enumerable properties, regardless of
+      // what the actual server-side error was.
+      if (anyError.name === "AuthRetryableFetchError") {
+        return "The server is having trouble right now. Please try again in a moment.";
+      }
       const message = anyError.message || anyError.msg || anyError.error_description;
-      if (message) return message;
+      if (message && message !== "{}") return message;
     }
     return "Something went wrong. Please try again.";
   }
