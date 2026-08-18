@@ -16,17 +16,31 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  function readableError(error: unknown): string {
+    if (error && typeof error === "object") {
+      const anyError = error as { message?: string; msg?: string; error_description?: string };
+      const message = anyError.message || anyError.msg || anyError.error_description;
+      if (message) return message;
+    }
+    return "Something went wrong. Please try again.";
+  }
+
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
-    const { createClient } = await import("@/lib/supabase/client");
-    const supabase = createClient();
-    const { error } = method === "email"
-      ? await supabase.auth.signInWithPassword({ email, password })
-      : await supabase.auth.signInWithPassword({ phone, password });
-    if (error) { setError(error.message); setLoading(false); }
-    else { router.push("/app/dashboard"); router.refresh(); }
+    try {
+      const { createClient } = await import("@/lib/supabase/client");
+      const supabase = createClient();
+      const { error } = method === "email"
+        ? await supabase.auth.signInWithPassword({ email, password })
+        : await supabase.auth.signInWithPassword({ phone, password });
+      if (error) { setError(readableError(error)); setLoading(false); }
+      else { router.push("/app/dashboard"); router.refresh(); }
+    } catch (error) {
+      setError(readableError(error));
+      setLoading(false);
+    }
   }
 
   return (

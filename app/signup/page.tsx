@@ -18,36 +18,55 @@ export default function SignupPage() {
   const [awaitingOtp, setAwaitingOtp] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  function readableError(error: unknown): string {
+    if (error && typeof error === "object") {
+      const anyError = error as { message?: string; msg?: string; error_description?: string };
+      const message = anyError.message || anyError.msg || anyError.error_description;
+      if (message) return message;
+    }
+    return "Something went wrong. Please try again.";
+  }
+
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
-    const { createClient } = await import("@/lib/supabase/client");
-    const supabase = createClient();
+    try {
+      const { createClient } = await import("@/lib/supabase/client");
+      const supabase = createClient();
 
-    if (method === "email") {
-      const { error } = await supabase.auth.signUp({ email, password, options: { data: { display_name: name } } });
-      if (error) { setError(error.message); setLoading(false); }
-      else { setSuccess(true); setLoading(false); }
-      return;
+      if (method === "email") {
+        const { error } = await supabase.auth.signUp({ email, password, options: { data: { display_name: name } } });
+        if (error) { setError(readableError(error)); setLoading(false); }
+        else { setSuccess(true); setLoading(false); }
+        return;
+      }
+
+      // Phone signup sends an SMS OTP; the account isn't confirmed until
+      // the code is verified below.
+      const { error } = await supabase.auth.signUp({ phone, password, options: { data: { display_name: name } } });
+      if (error) { setError(readableError(error)); setLoading(false); }
+      else { setAwaitingOtp(true); setLoading(false); }
+    } catch (error) {
+      setError(readableError(error));
+      setLoading(false);
     }
-
-    // Phone signup sends an SMS OTP; the account isn't confirmed until
-    // the code is verified below.
-    const { error } = await supabase.auth.signUp({ phone, password, options: { data: { display_name: name } } });
-    if (error) { setError(error.message); setLoading(false); }
-    else { setAwaitingOtp(true); setLoading(false); }
   }
 
   async function handleVerifyOtp(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
-    const { createClient } = await import("@/lib/supabase/client");
-    const supabase = createClient();
-    const { error } = await supabase.auth.verifyOtp({ phone, token: otp, type: "sms" });
-    if (error) { setError(error.message); setLoading(false); }
-    else { setSuccess(true); setLoading(false); }
+    try {
+      const { createClient } = await import("@/lib/supabase/client");
+      const supabase = createClient();
+      const { error } = await supabase.auth.verifyOtp({ phone, token: otp, type: "sms" });
+      if (error) { setError(readableError(error)); setLoading(false); }
+      else { setSuccess(true); setLoading(false); }
+    } catch (error) {
+      setError(readableError(error));
+      setLoading(false);
+    }
   }
 
   if (success) return (
